@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Pro - Python Web</title>
+    
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <py-config>
+        packages = ["pandas", "matplotlib"]
+    </py-config>
+
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        header { background: var(--primary); color: white; padding: 1rem 2rem; shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .container { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; padding: 2rem; flex-grow: 1; }
+        
+        .sidebar { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); height: fit-content; }
+        
+        .main-content { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
+
+        input[type="range"] { width: 100%; margin: 1rem 0; cursor: pointer; }
+        .stat-badge { font-weight: 600; color: var(--primary); font-size: 1.2rem; }
+        
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2 style="margin:0">DataViz Engine v1.0</h2>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <h3>Paramètres</h3>
+            <p>Seuil de ventes : <span id="value-display" class="stat-badge">100</span> €</p>
+            <input type="range" id="threshold" min="100" max="500" value="150" step="50">
+            <hr>
+            <p style="font-size: 0.8rem; color: #64748b;">Propulsé par Python (PyScript) directement dans votre navigateur.</p>
+        </aside>
+
+        <main class="main-content">
+            <div id="plot-output" style="width: 100%;"></div>
+            <div id="table-output" style="width: 100%; margin-top: 2rem; overflow-x: auto;"></div>
+        </main>
+    </div>
+
+    <script type="py">
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        from pyscript import display, when
+        import js
+
+        # Données
+        data = {"Annee": [2021, 2022, 2023, 2024, 2025], "Ventes": [150, 230, 310, 400, 520]}
+        df = pd.DataFrame(data)
+
+        def update_dashboard():
+            val = int(js.document.getElementById("threshold").value)
+            js.document.getElementById("value-display").innerText = str(val)
+            
+            df_filtered = df[df["Ventes"] >= val]
+
+            # Rendu du graphique
+            plt.close('all')
+            fig, ax = plt.subplots(figsize=(8, 4))
+            ax.bar(df_filtered["Annee"].astype(str), df_filtered["Ventes"], color='#2563eb')
+            ax.set_title("Analyse des Performances", fontsize=14, fontweight='bold')
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            
+            display(fig, target="plot-output", append=False)
+            display(df_filtered, target="table-output", append=False)
+
+        @when("input", "#threshold")
+        def on_change(event):
+            update_dashboard()
+
+        update_dashboard()
+    </script>
+</body>
+</html>
